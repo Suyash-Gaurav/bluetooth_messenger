@@ -15,6 +15,17 @@ Core Features
 * Message status tracking (sent, delivered, read)
 * Connection status monitoring
 * Offline message queuing
+* Real-time presence status updates
+
+Presence Features
+---------------
+* Live status indicators (Online, Away, Busy, Offline)
+* Custom status messages
+* Last seen tracking
+* Automatic status broadcasting
+* Visual presence indicators
+* Status change notifications
+* Offline detection
 
 Group Management
 ---------------
@@ -47,15 +58,18 @@ bluetooth_chat/
 │   │   ├── chat_message.dart     # Message data model
 │   │   ├── chat_group.dart       # Group data model
 │   │   ├── bluetooth_device.dart # Device model
+│   │   ├── user_presence.dart    # Presence status model
 │   │   └── message_reaction.dart # Message reactions
 │   ├── services/
 │   │   ├── bluetooth_service.dart # Bluetooth communication
 │   │   ├── database_service.dart  # Local storage
 │   │   ├── group_service.dart    # Group management
+│   │   ├── presence_service.dart  # Presence management
 │   │   ├── media_service.dart    # Media handling
 │   │   └── message_queue_service.dart # Offline queue
 │   └── widgets/
 │       ├── message_bubble.dart   # Message display
+│       ├── presence_indicator.dart # Status indicator
 │       └── device_tile.dart      # Device list item
 
 TECHNICAL DETAILS
@@ -79,7 +93,14 @@ Services
    - Member handling
    - Host privileges
 
-4. MediaService
+4. PresenceService
+   - Status management
+   - Presence broadcasting
+   - Last seen tracking
+   - Offline detection
+   - Status updates handling
+
+5. MediaService
    - Image handling
    - File sharing
    - Future media types support
@@ -95,6 +116,36 @@ Models
    - Host and member management
    - Group metadata
    - Permission handling
+
+3. UserPresence
+   - Status states (Online, Away, Busy, Offline)
+   - Last seen timestamp
+   - Custom status messages
+   - Device identification
+
+PRESENCE STATUS USAGE
+===================
+
+Setting Status
+-------------
+1. Tap the person icon in chat screen
+2. Select desired status (Online, Away, Busy)
+3. Optionally add custom status message
+4. Status automatically broadcasts to connected devices
+
+Viewing Status
+-------------
+* Device list shows status indicators for all paired devices
+* Chat screen displays current status of chat partner
+* Last seen time shown for offline contacts
+* Custom status messages visible in device list
+
+Automatic Updates
+---------------
+* Status broadcasts every 30 seconds
+* Offline status set automatically on disconnection
+* Last seen updated on every status change
+* Real-time status updates from connected devices
 
 SETUP INSTRUCTIONS
 ================
