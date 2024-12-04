@@ -8,6 +8,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:convert/convert.dart';
 import 'package:bluetooth_chat/services/database_service.dart';
+import '../services/presence_service.dart';
+import '../widgets/presence_indicator.dart';
 
 class ChatScreen extends StatefulWidget {
   final BluetoothDevice device;
@@ -24,6 +26,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final List<ChatMessage> _messages = [];
   final DatabaseService _databaseService = DatabaseService();
   bool _isConnected = false;
+  final PresenceService _presenceService = PresenceService();
 
   @override
   void initState() {
@@ -31,6 +34,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _setupMessageListener();
     _loadPreviousMessages();
     _setupConnectionListener();
+    _presenceService.initialize();
   }
 
   void _setupMessageListener() {
@@ -119,6 +123,55 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  void _showStatusSelector() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const PresenceIndicator(
+              presence: UserPresence(
+                deviceAddress: '',
+                status: PresenceStatus.online,
+                lastSeen: null,
+              ),
+            ),
+            title: const Text('Online'),
+            onTap: () => _updateStatus(PresenceStatus.online),
+          ),
+          ListTile(
+            leading: const PresenceIndicator(
+              presence: UserPresence(
+                deviceAddress: '',
+                status: PresenceStatus.away,
+                lastSeen: null,
+              ),
+            ),
+            title: const Text('Away'),
+            onTap: () => _updateStatus(PresenceStatus.away),
+          ),
+          ListTile(
+            leading: const PresenceIndicator(
+              presence: UserPresence(
+                deviceAddress: '',
+                status: PresenceStatus.busy,
+                lastSeen: null,
+              ),
+            ),
+            title: const Text('Busy'),
+            onTap: () => _updateStatus(PresenceStatus.busy),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _updateStatus(PresenceStatus status) async {
+    await _presenceService.updateStatus(status);
+    Navigator.pop(context);
+  }
+
   @override
   void dispose() {
     _bluetoothService.disconnect();
@@ -134,15 +187,37 @@ class _ChatScreenState extends State<ChatScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(widget.device.name ?? 'Chat'),
-            Text(
-              _isConnected ? 'Connected' : 'Disconnected',
-              style: TextStyle(
-                fontSize: 12,
-                color: _isConnected ? Colors.green : Colors.red,
-              ),
+            Row(
+              children: [
+                StreamBuilder<Map<String, UserPresence>>(
+                  stream: _presenceService.presenceStream,
+                  builder: (context, snapshot) {
+                    final presence = snapshot.data?[widget.device.address];
+                    return Row(
+                      children: [
+                        PresenceIndicator(presence: presence),
+                        const SizedBox(width: 4),
+                        Text(
+                          presence?.status.toString().split('.').last ?? 'Offline',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: _isConnected ? Colors.green : Colors.red,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: _showStatusSelector,
+          ),
+        ],
       ),
       body: Column(
         children: [
